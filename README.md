@@ -16,6 +16,26 @@ demand methodological transparency.*
 
 ---
 
+## 🏛️ Selected by Sebrae
+
+**ForeSight 3.0 was selected in the Sebrae RJ public call for blockchain startups**, and presented
+at the **Momento Pitch — Palco Sebrae** during **Blockchain Rio**, Latin America's largest
+blockchain and digital-finance event.
+
+**What that means.** Sebrae — *Serviço Brasileiro de Apoio às Micro e Pequenas Empresas* — is
+Brazil's national agency for supporting small business and startups. It runs open public calls
+(*editais*): startups apply with a pitch video and a description of the problem they solve, the
+innovation, the market and the team; a panel reviews them on merit and selects which ones get the
+stage, the exhibition space and the access to investors at the event.
+
+So the selection is an **external, independent read** on the project — by people who assess
+startups for a living, not by the person who built it. Which is the same standard the rest of this
+repository is built on: a claim is worth what someone else's check makes it worth.
+
+*(Rodrigo Huber Mendes presented on 12 August 2026, 13h50, ExpoMag, Rio de Janeiro.)*
+
+---
+
 ## Everyone shows you the backtest that worked.
 
 Here is ours, and the six that died.
