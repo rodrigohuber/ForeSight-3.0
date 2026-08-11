@@ -1,10 +1,11 @@
-# ForeSight — project rules
+# METHOD — the rules this project is built under
 
 ML and graphical analysis for cryptocurrency forecasting. Own database, own forecasting systems,
 own simulation systems. **Read `README.md` for the layout, `docs/DECISIONS.md` for what has been
 settled.**
 
-The sandbox-wide git identity rules in the root `CLAUDE.md` apply here in full.
+These are not aspirations. Every rule below is enforced in the code, and the results in
+the README were produced under all of them.
 
 ## Hard rules
 

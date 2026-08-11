@@ -150,7 +150,7 @@ similarity metrics. Answers RQ-D and directly extends the Mendes et al. 2025 met
   large multi-domain corpus. "Zero-shot on BTC" may not be zero-shot. Check each model's stated
   corpus before quoting.
 - **Costs decide everything.** A strategy that is profitable before fees and slippage is not a
-  finding. Rule 5 in `CLAUDE.md`.
+  finding. Rule 5 in `METHOD.md`.
 - **Survivorship bias is severe in crypto.** Dead coins vanish from most datasets. A backtest over
   today's listed pairs is a backtest over the winners.
 
@@ -164,7 +164,7 @@ similarity metrics. Answers RQ-D and directly extends the Mendes et al. 2025 met
 - **Mendes et al. 2025's similarity method** — transfer loss correlated against four similarity
   metrics across twenty sites. Directly reusable for RQ-D.
 - **The reproducibility discipline** — generated numbers, committed scripts, no typed counts.
-  Learned expensively on the SLR; `CLAUDE.md` carries it forward.
+  Learned expensively on the SLR; `METHOD.md` carries it forward.
 - **The extraction-schema habit** — freeze the experiment schema before running, not during.
 
 ---

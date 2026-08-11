@@ -109,4 +109,4 @@ what a single-source dataset cannot tell you.
    "complete, no missing minutes" dataset covering that era is filling gaps by construction —
    understand how before modelling on it.
 4. **Timestamp units differ and change over time** (see the Binance 2025 microsecond switch).
-   Normalize to UTC at ingestion and assert the result, per rule 4 in `CLAUDE.md`.
+   Normalize to UTC at ingestion and assert the result, per rule 4 in `METHOD.md`.

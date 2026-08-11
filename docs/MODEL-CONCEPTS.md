@@ -153,4 +153,4 @@ can forecast a series they have never seen, **zero-shot**, with no training on y
    SLR's data-budget question.
 
 Every step reports against the same baseline set, on chronological splits, with costs included
-once a strategy is attached. See rules 3, 5 and 6 in `CLAUDE.md`.
+once a strategy is attached. See rules 3, 5 and 6 in `METHOD.md`.
