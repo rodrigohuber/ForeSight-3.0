@@ -1,0 +1,11 @@
+# ForeSight — phase 1
+# Venv lives at ~/.venvs/foresight, never inside this Drive-synced folder.
+#   python -m venv ~/.venvs/foresight
+#   ~/.venvs/foresight/Scripts/pip install -r requirements.txt   # Windows
+#   ~/.venvs/foresight/bin/pip install -r requirements.txt       # POSIX
+#
+# ingestion/exchanges/binance.py deliberately uses the standard library only,
+# so raw data can be fetched before any of this is installed.
+
+pandas>=2.2
+pyarrow>=15.0

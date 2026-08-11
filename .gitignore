@@ -1,0 +1,63 @@
+# --- secrets -----------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+credentials*.json
+
+# --- data --------------------------------------------------------------------
+# Datasets are not versioned here; they are reproducible from ingestion scripts.
+# The folder structure survives via each folder's .gitkeep.
+data/raw/*
+data/interim/*
+data/processed/*
+data/external/*
+!data/**/.gitkeep
+!data/**/README.md
+
+# --- database ----------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+db/dumps/
+
+# --- models & runs -----------------------------------------------------------
+*.pt
+*.pth
+*.h5
+*.onnx
+*.joblib
+*.pkl
+forecasting/runs/
+mlruns/
+wandb/
+
+# --- notebooks ---------------------------------------------------------------
+.ipynb_checkpoints/
+
+# --- python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Venvs belong in ~/.venvs/foresight, never in this Drive-synced folder.
+# Listed only to catch an accidental local creation.
+.venv/
+venv/
+env/
+
+# --- os / editor -------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+_test_preds.npy
+_test_index.parquet

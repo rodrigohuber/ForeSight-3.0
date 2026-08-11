@@ -1,0 +1,232 @@
+<title>What we learned trying to make money forecasting Bitcoin</title>
+<style>
+:root{
+  --paper:#F2F3F0; --ink:#10151C; --ink-2:#3E4752; --muted:#6B7684;
+  --rule:#D8DAD4; --card:#FFFFFF; --signal:#2A6FD6; --warm:#D9622B;
+  --band:rgba(42,111,214,.13); --dead:#8A8F86;
+  --serif:"Iowan Old Style","Source Serif 4",Charter,Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    --paper:#0E1218; --ink:#EBEDE8; --ink-2:#B4BCC6; --muted:#8A94A0;
+    --rule:#252C36; --card:#151B23; --signal:#5A9BF0; --warm:#F0844E;
+    --band:rgba(90,155,240,.16); --dead:#6B7078;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1218; --ink:#EBEDE8; --ink-2:#B4BCC6; --muted:#8A94A0;
+  --rule:#252C36; --card:#151B23; --signal:#5A9BF0; --warm:#F0844E;
+  --band:rgba(90,155,240,.16); --dead:#6B7078;
+}
+:root[data-theme="light"]{
+  --paper:#F2F3F0; --ink:#10151C; --ink-2:#3E4752; --muted:#6B7684;
+  --rule:#D8DAD4; --card:#FFFFFF; --signal:#2A6FD6; --warm:#D9622B;
+  --band:rgba(42,111,214,.13); --dead:#8A8F86;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+     font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:830px;margin:0 auto;padding:clamp(2rem,5vw,4.5rem) clamp(1.1rem,4vw,2rem) 6rem}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;
+         text-transform:uppercase;color:var(--muted);margin:0 0 1.1rem}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.05rem,5.2vw,3.05rem);
+   line-height:1.1;letter-spacing:-.015em;margin:0 0 1rem;text-wrap:balance}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(1.35rem,3vw,1.72rem);
+   line-height:1.22;margin:3.6rem 0 .3rem;text-wrap:balance;letter-spacing:-.01em}
+h2+.sub{color:var(--muted);font-size:.95rem;margin:0 0 1.4rem}
+h3{font-family:var(--sans);font-weight:650;font-size:1.02rem;margin:2.1rem 0 .5rem}
+p{margin:0 0 1.15rem;max-width:66ch}
+strong{font-weight:650}
+.lede{font-size:1.16rem;line-height:1.6;color:var(--ink-2);max-width:60ch}
+.rule{height:3px;border:0;margin:2.6rem 0;border-radius:2px;
+      background:linear-gradient(90deg,var(--signal),var(--band) 42%,transparent)}
+.strip{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);
+       border-radius:10px;overflow:hidden;margin:2.2rem 0 .6rem;
+       grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.cell{background:var(--card);padding:1.05rem 1.1rem}
+.cell .k{font-family:var(--mono);font-size:.66rem;letter-spacing:.11em;
+         text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.4rem}
+.cell .v{font-family:var(--mono);font-size:1.45rem;font-weight:600;
+         font-variant-numeric:tabular-nums;letter-spacing:-.02em;display:block;line-height:1.1}
+.cell .n{font-size:.78rem;color:var(--muted);display:block;margin-top:.3rem;line-height:1.4}
+.up{color:var(--signal)} .down{color:var(--warm)} .flat{color:var(--dead)}
+figure{margin:2rem 0 2.4rem}
+figure img{width:100%;height:auto;display:block;border:1px solid var(--rule);
+           border-radius:8px;background:#fcfcfb}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:.7rem;max-width:64ch;line-height:1.55}
+.tw{overflow-x:auto;margin:1.4rem 0 1.8rem;border:1px solid var(--rule);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.9rem;background:var(--card)}
+th,td{padding:.6rem .85rem;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-family:var(--mono);font-size:.67rem;letter-spacing:.09em;
+         text-transform:uppercase;color:var(--muted);font-weight:500}
+tbody tr:last-child td{border-bottom:0}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.best td{background:var(--band);font-weight:600}
+tr.ref td{color:var(--muted);font-style:italic}
+.note{border-left:3px solid var(--warm);background:var(--card);
+      padding:1rem 1.15rem;border-radius:0 8px 8px 0;margin:1.8rem 0;font-size:.94rem}
+.note p{margin:0;max-width:none}
+.note p+p{margin-top:.7rem}
+.note .lbl{font-family:var(--mono);font-size:.66rem;letter-spacing:.11em;
+           text-transform:uppercase;color:var(--warm);display:block;margin-bottom:.4rem}
+.verdict{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);
+         border-radius:10px;overflow:hidden;margin:1.6rem 0}
+.vrow{background:var(--card);padding:.85rem 1.1rem;display:grid;
+      grid-template-columns:1fr auto;gap:1rem;align-items:baseline}
+.vrow .what{font-size:.95rem}
+.vrow .tag{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;
+           text-transform:uppercase;font-weight:600;white-space:nowrap}
+code{font-family:var(--mono);font-size:.87em;background:var(--card);
+     padding:.1em .35em;border-radius:4px;border:1px solid var(--rule)}
+ul{max-width:66ch;padding-left:1.15rem}
+li{margin-bottom:.5rem}
+footer{margin-top:4.5rem;padding-top:1.6rem;border-top:1px solid var(--rule);
+       color:var(--muted);font-size:.85rem}
+</style>
+
+<div class="wrap">
+<p class="eyebrow">ForeSight · 9.4M minute bars · BTC + ETH · 2017–2026</p>
+<h1>What we learned trying to make money forecasting Bitcoin</h1>
+<p class="lede">Almost everything that looked like an edge was real once, and has since been competed away. One thing survived. This is the full account, including the parts that failed.</p>
+
+<div class="strip">
+  <div class="cell"><span class="k">Direction, next minute</span>
+    <span class="v down">R² −1.02</span>
+    <span class="n">Worse than predicting nothing.</span></div>
+  <div class="cell"><span class="k">Chart indicators</span>
+    <span class="v down">1 of 38</span>
+    <span class="n">Survive correction — and it points the wrong way.</span></div>
+  <div class="cell"><span class="k">Funding carry, 2021</span>
+    <span class="v flat">+30.6%</span>
+    <span class="n">Last twelve months: +3.4%.</span></div>
+  <div class="cell"><span class="k">Trend following</span>
+    <span class="v up">0.99 vs 0.45</span>
+    <span class="n">Sharpe against buy-and-hold. Replicates on ETH.</span></div>
+</div>
+
+<hr class="rule">
+
+<h2>The scoreboard</h2>
+<p class="sub">Everything tested, and how it ended</p>
+
+<div class="verdict">
+  <div class="vrow"><span class="what">Minute-scale direction from price history</span><span class="tag down">DEAD</span></div>
+  <div class="vrow"><span class="what">Classic chart indicators — RSI, MACD, Bollinger, golden cross</span><span class="tag down">DEAD</span></div>
+  <div class="vrow"><span class="what">GARCH, GJR-GARCH, EGARCH for volatility</span><span class="tag down">BEATEN</span></div>
+  <div class="vrow"><span class="what">Our volatility model vs the options market</span><span class="tag down">LOST</span></div>
+  <div class="vrow"><span class="what">Variance risk premium after costs</span><span class="tag flat">BREAKEVEN</span></div>
+  <div class="vrow"><span class="what">Funding carry — long spot, short perpetual</span><span class="tag flat">ARBITRAGED</span></div>
+  <div class="vrow"><span class="what">Positioning data — open interest, &ldquo;smart money&rdquo; long/short ratios</span><span class="tag down">DEAD</span></div>
+  <div class="vrow"><span class="what">Trend following with volatility-scaled sizing</span><span class="tag up">SURVIVES</span></div>
+</div>
+
+<h2>What is actually predictable</h2>
+<p class="sub">Not direction — size</p>
+
+<figure>
+  <img src="__VOL__" alt="Autocorrelation of returns versus absolute returns over 60 lags. Returns collapse to zero within three lags. Absolute returns start at 0.42 and remain near 0.25 after an hour.">
+  <figcaption>Returns lose all memory in three minutes. Volatility keeps it for hours.</figcaption>
+</figure>
+
+<p>Bitcoin's next move is a coin flip. Its <em>size</em> is not: absolute returns autocorrelate at <strong>+0.42</strong> at one minute and are still at <strong>+0.25</strong> an hour later. We built a model that exploits this and it beats every standard benchmark — HAR, GARCH, GJR-GARCH and EGARCH, the last three by such a margin that they fall below simply carrying the last hour forward.</p>
+
+<figure>
+  <img src="__HOR__" alt="Bar chart of R-squared improvement over the HAR benchmark: 18.7 percent at one hour, 30.1 percent at four hours, 28.0 percent at twenty-four hours.">
+  <figcaption>The advantage grows with the horizon, inverting the usual intuition. What decays is the benchmark, not the signal.</figcaption>
+</figure>
+
+<p>Then we asked the question that matters: is it better than what the market already charges? Deribit publishes DVOL, its own 30-day implied volatility. <strong>DVOL beat us — RMSE 0.227 against our 0.311.</strong> In an encompassing regression our forecast added two points of R², with a <em>negative</em> coefficient, meaning it corrects our own over-reaction rather than adding information.</p>
+<p>Being excellent against a 2009 academic benchmark and losing to the market is the whole lesson in one sentence.</p>
+
+<h2>Watching an edge die</h2>
+<p class="sub">The clearest thing in the data</p>
+
+<figure>
+  <img src="__FUND__" alt="Annualised Bitcoin perpetual funding rate by year: 17.2 percent in 2020, 30.6 in 2021, 4.2 in 2022, 7.9 in 2023, 11.9 in 2024, 5.1 in 2025, 1.9 in 2026 so far.">
+  <figcaption>Perpetual funding has been positive in 86% of eight-hour settlements since 2020. Collecting it needs no forecast at all — only capital and the willingness to be short the perpetual.</figcaption>
+</figure>
+
+<p>We also tested the positioning data Binance publishes free every five minutes: open interest, the long/short ratio of <em>top traders</em> by account and by position size, and the taker buy/sell split. The &ldquo;smart money&rdquo; hypothesis says follow them; the crowding hypothesis says fade them. <strong>Zero of sixteen features survived multiple-testing correction</strong>, and top-trader positioning came in at ρ ≈ 0.005 — indistinguishable from nothing.</p>
+<p>Long spot, short the perpetual, collect funding. Delta roughly zero, no view on direction, and in 2021 it paid <strong>30.6% annualised</strong>. It is the simplest trade in crypto.</p>
+<p><strong>The last twelve months paid 3.4%.</strong> A government bond pays comparably without exchange counterparty risk, margin capital, or liquidation risk. The trade was real and it has been competed away — and because funding is published every eight hours, you can watch it happen year by year. That visibility is rare; most edges die quietly.</p>
+
+<div class="note">
+  <span class="lbl">A number to disbelieve</span>
+  <p>Computed naively, the carry shows a Sharpe of <strong>17</strong>. That figure assumes a perfect, free delta hedge. Add 5% hedge tracking error and it falls to 2.35; at 10%, to 1.18.</p>
+  <p>Any Sharpe above about 3 in a public strategy should be treated as a modelling artifact until proven otherwise. This one was ours.</p>
+</div>
+
+<h2>What survived</h2>
+<p class="sub">And the test that convinced us</p>
+
+<figure>
+  <img src="__REP__" alt="Grouped bars comparing Sharpe ratios for momentum lookbacks of 30, 60, 90, 180 and 365 days on BTC and ETH, each against its own buy-and-hold reference line.">
+  <figcaption>The same rules, unchanged, on two assets. Every lookback beats buy-and-hold on both, and the ranking across lookbacks is nearly identical.</figcaption>
+</figure>
+
+<p>Time-series momentum with volatility-scaled sizing. Long when the trailing return is positive, position scaled inversely to recent volatility, otherwise flat.</p>
+
+<div class="tw">
+<table>
+<thead><tr><th>Lookback</th><th>BTC Sharpe</th><th>ETH Sharpe</th><th>BTC max DD</th></tr></thead>
+<tbody>
+<tr class="best"><td>30 days</td><td class="num">0.99</td><td class="num">0.81</td><td class="num">0.54</td></tr>
+<tr><td>60 days</td><td class="num">0.92</td><td class="num">0.73</td><td class="num">0.72</td></tr>
+<tr><td>90 days</td><td class="num">0.61</td><td class="num">0.49</td><td class="num">0.71</td></tr>
+<tr><td>180 days</td><td class="num">0.59</td><td class="num">0.31</td><td class="num">0.73</td></tr>
+<tr><td>365 days</td><td class="num">0.61</td><td class="num">0.40</td><td class="num">0.66</td></tr>
+<tr class="ref"><td>buy &amp; hold</td><td class="num">0.45</td><td class="num">0.25</td><td class="num">1.15</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Every lookback beats buy-and-hold on both assets, at every cost level up to 20 bps, with drawdowns roughly halved. The value is concentrated in <strong>downside protection</strong>: in the 2021–22 bear market every variant lost less than holding, and one was flat against buy-and-hold's −0.85.</p>
+<p>That the ordering across lookbacks is nearly identical on two independent assets is what moved this from interesting to credible. A pattern that exists only on Bitcoin is a Bitcoin fact.</p>
+
+<h2>The finding we did not expect</h2>
+<p class="sub">A better forecast is a worse position sizer</p>
+
+<p>Our volatility model beats HAR by 30% on forecast accuracy. We then used it to size positions, expecting the good forecast to produce a better strategy. It did the opposite.</p>
+
+<div class="tw">
+<table>
+<thead><tr><th>Sizing method</th><th>Sharpe</th><th>Turnover / year</th></tr></thead>
+<tbody>
+<tr class="best"><td>Simple 20-day realized volatility</td><td class="num">0.61</td><td class="num">7×</td></tr>
+<tr><td>Our LightGBM forecast</td><td class="num">0.50</td><td class="num">48×</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>For an always-long position it is worse still: 0.07 against 0.45. The reason is that the two tasks want opposite things. <strong>Forecasting rewards responsiveness; sizing rewards stability.</strong> A model tuned to react quickly to changing volatility produces a position that churns, and the churn costs more than the accuracy earns.</p>
+<p>We spent days optimising forecast accuracy. It was the wrong objective for the use we had in mind, and no amount of additional accuracy would have fixed it.</p>
+
+<h2>How we kept ourselves honest</h2>
+
+<p>Two bugs in our own work survived long enough to produce believable wrong answers, and both were caught by a result being <em>implausible</em> rather than by a test failing.</p>
+
+<ul>
+<li><strong>A 14-day exchange outage in December 2017</strong> — during the peak of the mania, which cannot be right. It was 20,400 real bars whose timestamps sat seconds inside the minute. Dropping them would have discarded half the most informative month in the series.</li>
+<li><strong>The first momentum result was contaminated.</strong> The signal was built from a cumulative sum of <em>forward</em> returns, so the running total already contained the return being predicted — correlation exactly 1.000. It survived rebuilding, but only because a twelve-month sum is barely moved by one day.</li>
+</ul>
+
+<p>Beyond that: chronological splits only, never random; walk-forward evaluation with every block scored before it is trained on; costs charged everywhere; Benjamini-Hochberg correction when testing 38 indicators at once; and the full parameter grid reported rather than its best cell. Every source file was checksum-verified against the SHA-256 published beside it.</p>
+
+<div class="note">
+  <span class="lbl">The honest ceiling</span>
+  <p>Sharpe standard error on this sample is <strong>0.35</strong>. The trend result's margin over buy-and-hold is roughly one and a half standard errors — suggestive, not conclusive. Both assets rose enormously across the window, which flatters a long-biased rule. And trend following is a crowded, well-documented premium, not a discovery.</p>
+  <p>A backtest without slippage, funding or execution risk is not a live result, and nothing here should be mistaken for one.</p>
+</div>
+
+<h2>If you take one thing</h2>
+
+<p>The market is efficient in exactly the dimensions you can observe cheaply, and the observable edges decay on a timescale you can measure. What is left over is not a prediction but a <em>risk premium</em> — you get paid for holding something uncomfortable through drawdowns most people will not tolerate, and no model makes that discomfort go away.</p>
+<p>Every result above is reproducible from the raw exchange archive. No number was typed by hand.</p>
+
+<footer>
+<p>Binance BTCUSDT and ETHUSDT 1-minute spot, 2017-08 to 2026-07, 9.4M bars, each monthly archive SHA-256 verified. Deribit DVOL, 32,987 hourly points. Binance perpetual funding, 7,212 settlements. Benchmarks: naive carry-forward, HAR (Corsi 2009), GARCH/GJR/EGARCH. Significance: Diebold–Mariano with Newey–West errors.</p>
+</footer>
+</div>

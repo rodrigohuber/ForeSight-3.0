@@ -1,0 +1,190 @@
+<title>Forecasting Bitcoin volatility — what worked, what didn't</title>
+<style>
+:root{
+  --paper:#F2F3F0; --ink:#10151C; --ink-2:#3E4752; --muted:#6B7684;
+  --rule:#D8DAD4; --card:#FFFFFF; --signal:#2A6FD6; --warm:#D9622B;
+  --band:rgba(42,111,214,.13);
+  --serif:"Iowan Old Style","Source Serif 4",Charter,Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    --paper:#0E1218; --ink:#EBEDE8; --ink-2:#B4BCC6; --muted:#8A94A0;
+    --rule:#252C36; --card:#151B23; --signal:#5A9BF0; --warm:#F0844E;
+    --band:rgba(90,155,240,.16);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1218; --ink:#EBEDE8; --ink-2:#B4BCC6; --muted:#8A94A0;
+  --rule:#252C36; --card:#151B23; --signal:#5A9BF0; --warm:#F0844E;
+  --band:rgba(90,155,240,.16);
+}
+:root[data-theme="light"]{
+  --paper:#F2F3F0; --ink:#10151C; --ink-2:#3E4752; --muted:#6B7684;
+  --rule:#D8DAD4; --card:#FFFFFF; --signal:#2A6FD6; --warm:#D9622B;
+  --band:rgba(42,111,214,.13);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+     font-family:var(--sans);font-size:17px;line-height:1.65;
+     -webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:clamp(2rem,5vw,4.5rem) clamp(1.1rem,4vw,2rem) 6rem}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;
+         text-transform:uppercase;color:var(--muted);margin:0 0 1.1rem}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.1rem,5.4vw,3.15rem);
+   line-height:1.1;letter-spacing:-.015em;margin:0 0 1rem;text-wrap:balance}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(1.35rem,3vw,1.7rem);
+   line-height:1.22;margin:3.6rem 0 .3rem;text-wrap:balance;letter-spacing:-.01em}
+h2+.sub{color:var(--muted);font-size:.95rem;margin:0 0 1.4rem}
+p{margin:0 0 1.15rem;max-width:66ch}
+a{color:var(--signal)}
+strong{font-weight:650}
+.lede{font-size:1.16rem;line-height:1.6;color:var(--ink-2);max-width:60ch}
+.rule{height:3px;border:0;margin:2.6rem 0;border-radius:2px;
+      background:linear-gradient(90deg,var(--signal),var(--band) 42%,transparent)}
+.strip{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);
+       border-radius:10px;overflow:hidden;margin:2.2rem 0 .6rem;
+       grid-template-columns:repeat(auto-fit,minmax(158px,1fr))}
+.cell{background:var(--card);padding:1.05rem 1.1rem}
+.cell .k{font-family:var(--mono);font-size:.67rem;letter-spacing:.11em;
+         text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.4rem}
+.cell .v{font-family:var(--mono);font-size:1.5rem;font-weight:600;
+         font-variant-numeric:tabular-nums;letter-spacing:-.02em;display:block;line-height:1.1}
+.cell .n{font-size:.79rem;color:var(--muted);display:block;margin-top:.3rem;line-height:1.4}
+.up{color:var(--signal)}
+.down{color:var(--warm)}
+figure{margin:2rem 0 2.4rem}
+figure img{width:100%;height:auto;display:block;border:1px solid var(--rule);
+           border-radius:8px;background:#fcfcfb}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:.7rem;max-width:64ch;line-height:1.55}
+.tw{overflow-x:auto;margin:1.4rem 0 1.8rem;border:1px solid var(--rule);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.9rem;background:var(--card)}
+th,td{padding:.62rem .85rem;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-family:var(--mono);font-size:.68rem;letter-spacing:.09em;
+         text-transform:uppercase;color:var(--muted);font-weight:500}
+tbody tr:last-child td{border-bottom:0}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.best td{background:var(--band);font-weight:600}
+.note{border-left:3px solid var(--warm);background:var(--card);
+      padding:1rem 1.15rem;border-radius:0 8px 8px 0;margin:1.8rem 0;font-size:.94rem}
+.note p{margin:0;max-width:none}
+.note .lbl{font-family:var(--mono);font-size:.67rem;letter-spacing:.11em;
+           text-transform:uppercase;color:var(--warm);display:block;margin-bottom:.4rem}
+code{font-family:var(--mono);font-size:.87em;background:var(--card);
+     padding:.1em .35em;border-radius:4px;border:1px solid var(--rule)}
+pre{font-family:var(--mono);font-size:.82rem;background:var(--card);
+    border:1px solid var(--rule);border-radius:8px;padding:1rem 1.1rem;
+    overflow-x:auto;line-height:1.55}
+pre code{background:none;border:0;padding:0}
+ul{max-width:66ch;padding-left:1.15rem}
+li{margin-bottom:.5rem}
+footer{margin-top:4.5rem;padding-top:1.6rem;border-top:1px solid var(--rule);
+       color:var(--muted);font-size:.85rem}
+</style>
+
+<div class="wrap">
+<p class="eyebrow">ForeSight · Bitcoin volatility · 2017–2026 · 4.7M minute bars</p>
+<h1>What a machine learning model can and cannot tell you about Bitcoin</h1>
+<p class="lede">It cannot tell you which way the price is going. It can tell you how violent the next few hours will be — and the further ahead you look, the better it gets. Here is the evidence, including where it fails.</p>
+
+<div class="strip">
+  <div class="cell"><span class="k">Direction, next minute</span>
+    <span class="v down">R² −1.02</span>
+    <span class="n">Worse than predicting nothing. 49.4% hit rate.</span></div>
+  <div class="cell"><span class="k">Volatility, next 4 hours</span>
+    <span class="v up">+30.1%</span>
+    <span class="n">R² gain over the standard econometric benchmark.</span></div>
+  <div class="cell"><span class="k">Extreme hours flagged</span>
+    <span class="v up">32.5%</span>
+    <span class="n">Of the worst 1% of hours. Chance would give 1%.</span></div>
+  <div class="cell"><span class="k">Biggest spike</span>
+    <span class="v down">missed 4×</span>
+    <span class="n">6.65% realized against a 1.73% band top.</span></div>
+</div>
+
+<hr class="rule">
+
+<h2>The question everyone asks first</h2>
+<p class="sub">And the answer nobody wants</p>
+<p><strong>Bitcoin's next-minute direction is not predictable.</strong> Not with gradient boosting, not with a neural network, not with momentum. Using the previous minute's return as a forecast scores an R² of <strong>−1.02</strong> against simply predicting zero, with a hit rate of <strong>49.4%</strong> — below a coin flip.</p>
+<p>That is not a modelling failure, it is a property of the market. The lag-1 autocorrelation of minute returns is statistically significant across 3.3 million observations, but it is <em>negative</em> — mean reversion consistent with bid–ask bounce. It lives inside the spread, so it cannot be traded.</p>
+
+<h2>What is predictable</h2>
+<p class="sub">Volatility, and strongly</p>
+<figure>
+  <img src="__VOL__" alt="Autocorrelation of returns versus absolute returns across 60 lags. Returns collapse to zero within three lags; absolute returns start at 0.42 and remain near 0.25 after an hour.">
+  <figcaption>Returns lose all memory within three minutes. Volatility keeps it for hours. This single chart is why the project changed target.</figcaption>
+</figure>
+<p>The direction of the next move is noise. Its <em>size</em> is not. Absolute returns autocorrelate at <strong>+0.42</strong> at one minute and remain at <strong>+0.25</strong> a full hour later. Big moves cluster; calm clusters too.</p>
+
+<h2>The finding worth sharing</h2>
+<p class="sub">The advantage grows with the horizon</p>
+<figure>
+  <img src="__HOR__" alt="Bar chart of R-squared improvement over HAR: 18.7 percent at one hour, 30.1 percent at four hours, 28.0 percent at twenty-four hours.">
+  <figcaption>Walk-forward evaluation with the model refit every 90 days and each block scored before it is ever trained on. Over 31,000 scored hours per horizon.</figcaption>
+</figure>
+<p>Against <strong>HAR</strong> — Corsi's heterogeneous autoregressive model, the standard benchmark in the realized-volatility literature — gradient boosting improves accuracy by 18.7% at one hour. At <strong>four hours it reaches 30.1%</strong>, and holds 28.0% at a full day.</p>
+<p>This runs against the usual intuition that forecasts decay with horizon. What decays is the <em>benchmark</em>: HAR's fixed hourly/daily/weekly structure is tuned for one step ahead, while the model can exploit slower-moving state that only pays off further out. The horizons that turn out to be easier are also the ones an operator actually cares about.</p>
+
+<div class="tw">
+<table>
+<thead><tr><th>Horizon</th><th>HAR RMSE</th><th>Model RMSE</th><th>R² gain</th><th>Hours scored</th></tr></thead>
+<tbody>
+<tr><td>1 hour</td><td class="num">0.3583</td><td class="num">0.3232</td><td class="num">+18.7%</td><td class="num">31,388</td></tr>
+<tr class="best"><td>4 hours</td><td class="num">0.3692</td><td class="num">0.3087</td><td class="num">+30.1%</td><td class="num">31,382</td></tr>
+<tr><td>24 hours</td><td class="num">0.3376</td><td class="num">0.2866</td><td class="num">+28.0%</td><td class="num">31,342</td></tr>
+</tbody>
+</table>
+</div>
+<p>All three are significant beyond any conventional threshold under a Diebold–Mariano test with Newey–West errors, which is the right test here because forecast errors arrive in runs rather than independently.</p>
+
+<h2>Where the edge comes from</h2>
+<p class="sub">One feature the benchmark structurally cannot have</p>
+<p>Half the model's explanatory power sits on the previous hour and a fifth on the previous day — that is HAR's own structure, recovered from data. The third most important feature, at <strong>13.5% of total gain</strong>, is <strong>downside semivariance</strong>: volatility computed from negative minutes only.</p>
+<p>This is the leverage effect. A 1% fall raises expected future volatility more than a 1% rise does. HAR's realized-variance term is symmetric by construction and has no way to express it. That asymmetry is most of the improvement, which is why a <em>richer</em> model wins rather than simply a bigger one.</p>
+
+<h2>Where it fails</h2>
+<p class="sub">Stated plainly, because this is the part that matters</p>
+<figure>
+  <img src="__BAND__" alt="Ten days of hourly realized volatility with the model's 90 percent forecast band. The band tracks ordinary variation closely and widens before the spike, but the spike reaches 6.65 percent while the band tops out near 1.73 percent.">
+  <figcaption>The most volatile hour in the evaluation period. The band widens ahead of it — 2.7× wider than on a normal hour — and still falls short by a factor of four.</figcaption>
+</figure>
+<p><strong>The model does not predict crises.</strong> In the most violent hour of the evaluation window, realized volatility reached <strong>6.65%</strong>. The median forecast said 1.07%; the top of the 90% band said 1.73%; HAR said 0.68%.</p>
+<p>The model is closer than the benchmark, and its band does widen by <strong>2.7×</strong> ahead of extreme hours, so it is not blind. But being a factor of four short is the difference between a useful risk signal and a sufficient one.</p>
+
+<div class="note">
+  <span class="lbl">Honest accounting</span>
+  <p>An earlier round of this work read the held-out test window twice — once before a feature defect was found, once after. The defect was an unbounded ratio that reached 9.3 in training and 1,929 in test, which made the linear and neural models diverge catastrophically. It was fixed on grounds independent of test performance, but that split is no longer pristine. Every headline number here comes from walk-forward evaluation instead, which does not depend on it.</p>
+</div>
+
+<h2>The negative result worth as much as the positive one</h2>
+<p>A neural network was included as a control. It beat the benchmark on validation by 6.7% and then <strong>lost to it on the test window by 4.2%</strong>. Gradient boosting held its edge on both.</p>
+<p>Without a held-out evaluation the neural network would have looked like it worked. On tabular financial data with a few dozen engineered features, it does not — and that is worth knowing before anyone spends a month on architecture.</p>
+<figure>
+  <img src="__TAIL__" alt="Bar chart comparing random chance at 1 percent against the upper-quantile model at 32.5 percent for flagging the worst 1 percent of hours.">
+  <figcaption>Quantile forecasting is the partial answer to the tail problem: 32× better than chance at flagging extreme hours, while still missing two thirds of them.</figcaption>
+</figure>
+
+<h2>How it was kept honest</h2>
+<ul>
+<li><strong>Walk-forward evaluation.</strong> Expanding window, refit every 90 days, every block scored before it is ever trained on.</li>
+<li><strong>Chronological splits only.</strong> Never a random split of a time series; scalers fitted on training windows alone.</li>
+<li><strong>Gap-aware returns.</strong> A return spanning a 33-hour exchange outage is not a one-minute return, and is dropped rather than kept.</li>
+<li><strong>Every source file checksum-verified</strong> against the SHA-256 published beside it — 108 monthly archives, none unverified.</li>
+<li><strong>A real benchmark.</strong> HAR is not a straw man: it beats the naive carry-forward by 9%, and beats both smoothers tested.</li>
+</ul>
+<p>One data quirk is worth repeating because it nearly cost a fifth of the sample. The loader reported a 14-day exchange outage in December 2017 — during the peak of the mania, which is implausible on its face. It turned out to be 20,400 real bars whose timestamps sat a few seconds into the minute and so fell outside the expected grid. The implausibility was the only thing that flagged it.</p>
+
+<h2>Try it</h2>
+<pre><code>python ingestion/exchanges/binance.py --start 2017-08 --apply
+python scripts/build_interim_bars.py --apply
+python scripts/train_v2.py
+python scripts/forecast_now.py --horizon 4</code></pre>
+<p>The last command trains on everything available and prints a forecast for the next four hours with a 90% band. Everything regenerates from the archive; no number in this write-up was typed by hand.</p>
+
+<footer>
+<p>Binance BTCUSDT 1-minute spot, 2017-08-17 to 2026-07-31, 4,701,438 bars. Target: realized volatility, <code>RV = √Σr²</code>, modelled in logs. Benchmark: HAR (Corsi 2009). Model: LightGBM, 46 features. Significance: Diebold–Mariano with Newey–West HAC errors.</p>
+</footer>
+</div>
